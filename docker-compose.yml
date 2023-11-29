@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:5.0.8
+    container_name: micro_task_mongodb
+    restart: always
+    volumes:
+      - mongodb-micro-data:/data/db
+    ports:
+      - 27017:27017
+
+volumes:
+  mongodb-micro-data:
+    driver: local
