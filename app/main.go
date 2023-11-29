@@ -104,6 +104,29 @@ func addSubTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func checkStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	uuid := r.FormValue("uuid")
+
+	collection := client.Database("your_database_name").Collection("tasks")
+	filter := bson.M{"uuid": uuid}
+
+	var task Task
+	err := collection.FindOne(context.Background(), filter).Decode(&task)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Failed to fetch task")
+		return
+	}
+
+	response := map[string]interface{}{
+		"uuid":   task.UUID,
+		"status": task.Status,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -119,6 +142,7 @@ func main() {
 
 	router.HandleFunc("/createTask", createTask).Methods("POST")
 	router.HandleFunc("/addSubTask", addSubTask).Methods("POST")
+	router.HandleFunc("/checkStatus", checkStatus).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
