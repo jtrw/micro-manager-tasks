@@ -70,9 +70,9 @@ func (s Server) routes() chi.Router {
 	handler := taskHandler.NewHandler(s.Client)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
-			r.Post("/createTask", handler.CreateTask)
-			r.Post("/addSubTask", handler.AddSubTask)
-			r.Get("/checkStatus", handler.CheckStatus)
+			r.Post("/task", handler.CreateTask)
+			r.Post("/subtask", handler.AddSubTask)
+			r.Get("/status", handler.CheckStatus)
 		},
 	)
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +25,7 @@ type Task struct {
 	Count    int       `json:"count" bson:"count"`
 	Type     string    `json:"type" bson:"type"`
 	Status   string    `json:"status" bson:"status"`
+	Callback string    `json:"callback" bson:"callback"`
 	Subtasks []SubTask `json:"subtasks" bson:"subtasks"`
 }
 
@@ -99,6 +101,19 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode("Failed to update task status")
 			return
+		}
+		if task.Callback != "" {
+			body := []byte(`{
+				"UUID": task.UUID,
+				"status": "done"
+			}`)
+			_, err := http.NewRequest("POST", task.Callback, bytes.NewBuffer(body))
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode("Failed to send callback")
+				return
+			}
 		}
 	}
 
