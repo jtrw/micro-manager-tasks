@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/render"
 	"github.com/jtrw/go-rest"
 	"github.com/pkg/errors"
-	"log"
 	"go.mongodb.org/mongo-driver/mongo"
+	"log"
 	taskHandler "micro-manager-tasks/m/v2/app/handler"
 	"net/http"
 	"time"
@@ -49,7 +49,7 @@ func (s Server) Run(ctx context.Context) error {
 		}
 	}()
 
-    err := httpServer.ListenAndServe()
+	err := httpServer.ListenAndServe()
 	log.Printf("[WARN] http server terminated, %s", err)
 
 	if err != http.ErrServerClosed {
@@ -68,15 +68,19 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 
 	handler := taskHandler.NewHandler(s.Client)
-	router.Route("/api/v1", func(r chi.Router) {
-		r.Post("/createTask", handler.CreateTask)
-		r.Post("/addSubTask", handler.AddSubTask)
-		r.Get("/checkStatus", handler.CheckStatus)
-	})
+	router.Route(
+		"/api/v1", func(r chi.Router) {
+			r.Post("/createTask", handler.CreateTask)
+			r.Post("/addSubTask", handler.AddSubTask)
+			r.Get("/checkStatus", handler.CheckStatus)
+		},
+	)
 
-	router.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-		render.PlainText(w, r, "User-agent: *\nDisallow: /\n")
-	})
+	router.Get(
+		"/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+			render.PlainText(w, r, "User-agent: *\nDisallow: /\n")
+		},
+	)
 
 	return router
 }
