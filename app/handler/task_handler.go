@@ -1,13 +1,13 @@
 package handler
 
 import (
-    "context"
-    "encoding/json"
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
+	"context"
+	"encoding/json"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"net/http"
 )
 
 type Handler struct {
@@ -20,11 +20,11 @@ func NewHandler(client *mongo.Client) Handler {
 
 // Task структура для зберігання завдань
 type Task struct {
-	UUID     string      `json:"uuid" bson:"uuid"`
-	Count    int         `json:"count" bson:"count"`
-	Type     string      `json:"type" bson:"type"`
-	Status   string      `json:"status" bson:"status"`
-	Subtasks []SubTask   `json:"subtasks" bson:"subtasks"`
+	UUID     string    `json:"uuid" bson:"uuid"`
+	Count    int       `json:"count" bson:"count"`
+	Type     string    `json:"type" bson:"type"`
+	Status   string    `json:"status" bson:"status"`
+	Subtasks []SubTask `json:"subtasks" bson:"subtasks"`
 }
 
 // SubTask структура для зберігання підзавдань
@@ -33,7 +33,6 @@ type SubTask struct {
 	Type   string `json:"type" bson:"type"`
 	Status string `json:"status" bson:"status"`
 }
-
 
 // createTask обробник запиту POST /createTask
 func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +63,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&subTask)
 
 	uuid := r.URL.Query().Get("uuid")
-    log.Println(uuid)
+	log.Println(uuid)
 	collection := h.Client.Database("micro-tasks").Collection("tasks")
 	filter := bson.M{"uuid": uuid}
 	update := bson.M{
@@ -73,7 +72,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 
 	res, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-	    log.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode("Failed to add subtask")
 		return
@@ -84,7 +83,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	err = collection.FindOne(context.Background(), filter).Decode(&task)
 	if err != nil {
-	    log.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode("Failed to update task status!")
 		return
@@ -107,7 +106,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h Handler)  CheckStatus(w http.ResponseWriter, r *http.Request) {
+func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	uuid := r.FormValue("uuid")
 
