@@ -19,7 +19,6 @@ func NewHandler(client *mongo.Client) Handler {
 	return Handler{Client: client}
 }
 
-// Task структура для зберігання завдань
 type Task struct {
 	UUID     string    `json:"uuid" bson:"uuid"`
 	Count    int       `json:"count" bson:"count"`
@@ -29,14 +28,12 @@ type Task struct {
 	Subtasks []SubTask `json:"subtasks" bson:"subtasks"`
 }
 
-// SubTask структура для зберігання підзавдань
 type SubTask struct {
 	UUID   string `json:"uuid" bson:"uuid"`
 	Type   string `json:"type" bson:"type"`
 	Status string `json:"status" bson:"status"`
 }
 
-// createTask обробник запиту POST /createTask
 func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var task Task
@@ -45,6 +42,14 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	task.Status = "created"
 	task.UUID = primitive.NewObjectID().Hex()
 	task.Subtasks = []SubTask{}
+
+	if task.Count == 0 {
+		task.Count = 1
+	}
+
+	if task.Type == "" {
+		task.Type = "default"
+	}
 
 	collection := h.Client.Database("micro-tasks").Collection("tasks")
 	_, err := collection.InsertOne(context.Background(), task)
@@ -58,7 +63,6 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// addSubTask обробник запиту POST /addSubTask
 func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var subTask SubTask
@@ -81,7 +85,6 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(res)
 
-	// Перевіряємо кількість підзавдань та змінюємо статус, якщо потрібно
 	var task Task
 	err = collection.FindOne(context.Background(), filter).Decode(&task)
 	if err != nil {
@@ -142,4 +145,23 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h Handler) onShowTaskInfo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	uuid := r.FormValue("uuid")
+
+	collection := h.Client.Database("micro-tasks").Collection("tasks")
+	filter := bson.M{"uuid": uuid}
+
+	var task Task
+	err := collection.FindOne(context.Background(), filter).Decode(&task)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Failed to fetch task")
+		return
+	}
+
+	json.NewEncoder(w).Encode(task)
+
 }
