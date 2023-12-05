@@ -20,6 +20,7 @@ type Options struct {
 	MaxExpire      time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
 	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
+	Database       string        `long:"db" env:"DATABASE" default:"micro-tasks" description:"database name"`
 }
 
 var revision string
@@ -31,6 +32,7 @@ func main() {
 	parser := flags.NewParser(&opts, flags.Default)
 	_, err := parser.Parse()
 	if err != nil {
+
 		log.Fatal(err)
 	}
 
@@ -64,6 +66,7 @@ func main() {
 		Secret:         opts.Secret,
 		Version:        revision,
 		Client:         client,
+		Database:       opts.Database,
 	}
 	if err := srv.Run(ctx); err != nil {
 		log.Printf("[ERROR] failed, %+v", err)
