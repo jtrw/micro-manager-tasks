@@ -26,6 +26,8 @@ type Server struct {
 	Secret         string
 	Version        string
 	Client         *mongo.Client
+	Database       string
+	Collection     string
 }
 
 func (s Server) Run(ctx context.Context) error {
@@ -67,11 +69,12 @@ func (s Server) routes() chi.Router {
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
 
-	handler := taskHandler.NewHandler(s.Client)
+	database := s.Client.Database(s.Database)
+	handler := taskHandler.NewHandler(database)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			r.Post("/tasks", handler.CreateTask)
-			r.Get("/tasks/{uuid}", handler.onShowTaskInfo)
+			r.Get("/tasks/{uuid}", handler.ShowTaskInfo)
 			r.Post("/subtask", handler.AddSubTask)
 			r.Get("/status", handler.CheckStatus)
 		},

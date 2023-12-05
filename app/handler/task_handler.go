@@ -12,11 +12,11 @@ import (
 )
 
 type Handler struct {
-	Client *mongo.Client
+	Database *mongo.Database
 }
 
-func NewHandler(client *mongo.Client) Handler {
-	return Handler{Client: client}
+func NewHandler(database *mongo.Database) Handler {
+	return Handler{Database: database}
 }
 
 type Task struct {
@@ -33,6 +33,8 @@ type SubTask struct {
 	Type   string `json:"type" bson:"type"`
 	Status string `json:"status" bson:"status"`
 }
+
+const COLLECTION_TASKS = "tasks"
 
 func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -51,7 +53,7 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		task.Type = "default"
 	}
 
-	collection := h.Client.Database("micro-tasks").Collection("tasks")
+	collection := h.Database.Collection(COLLECTION_TASKS)
 	_, err := collection.InsertOne(context.Background(), task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -70,7 +72,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 
 	uuid := r.URL.Query().Get("uuid")
 	log.Println(uuid)
-	collection := h.Client.Database("micro-tasks").Collection("tasks")
+	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
 	update := bson.M{
 		"$push": bson.M{"subtasks": subTask},
@@ -128,7 +130,7 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	uuid := r.FormValue("uuid")
 
-	collection := h.Client.Database("micro-tasks").Collection("tasks")
+	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
 
 	var task Task
@@ -147,11 +149,11 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h Handler) onShowTaskInfo(w http.ResponseWriter, r *http.Request) {
+func (h Handler) ShowTaskInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	uuid := r.FormValue("uuid")
 
-	collection := h.Client.Database("micro-tasks").Collection("tasks")
+	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
 
 	var task Task
