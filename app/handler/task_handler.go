@@ -57,6 +57,7 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	_, err := collection.InsertOne(context.Background(), task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		json.NewEncoder(w).Encode("Failed to create task")
 		return
 	}
