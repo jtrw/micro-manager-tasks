@@ -21,6 +21,8 @@ type Options struct {
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
 	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
 	Database       string        `long:"db" env:"DATABASE" default:"micro-tasks" description:"database name"`
+	DatabaseUser   string        `long:"dbuser" env:"MONGODB_ROOT_USER" default:"root" description:"database user"`
+	DatabasePass   string        `long:"dbpass" env:"MONGODB_ROOT_PASSWORD" default:"F4u3b8BYQKad" description:"database password"`
 }
 
 var revision string
@@ -50,8 +52,12 @@ func main() {
 		log.Printf("[WARN] interrupt signal")
 		cancel()
 	}()
-
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	cred := options.Credential{
+		AuthSource: "admin",
+		Username:   opts.DatabaseUser,
+		Password:   opts.DatabasePass,
+	}
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(cred)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
