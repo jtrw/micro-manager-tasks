@@ -20,9 +20,10 @@ type Options struct {
 	MaxExpire      time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
 	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
+	MongoUrl       string        `long:"mongo" env:"MONGO_URL" default:"mongodb://localhost:27017" description:"mongo url"`
 	Database       string        `long:"db" env:"DATABASE" default:"micro-tasks" description:"database name"`
-	DatabaseUser   string        `long:"dbuser" env:"MONGODB_ROOT_USER" default:"root" description:"database user"`
-	DatabasePass   string        `long:"dbpass" env:"MONGODB_ROOT_PASSWORD" default:"F4u3b8BYQKad" description:"database password"`
+	MongoUser      string        `long:"dbuser" env:"MONGODB_ROOT_USER" default:"root" description:"database user"`
+	MongoPass      string        `long:"dbpass" env:"MONGODB_ROOT_PASSWORD" default:"F4u3b8BYQKad" description:"database password"`
 }
 
 var revision string
@@ -52,13 +53,7 @@ func main() {
 		log.Printf("[WARN] interrupt signal")
 		cancel()
 	}()
-	cred := options.Credential{
-		AuthSource: "admin",
-		Username:   opts.DatabaseUser,
-		Password:   opts.DatabasePass,
-	}
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017").SetAuth(cred)
-	client, err := mongo.Connect(ctx, clientOptions)
+	client, err := getMongoConnection(opts)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,4 +72,14 @@ func main() {
 	if err := srv.Run(ctx); err != nil {
 		log.Printf("[ERROR] failed, %+v", err)
 	}
+}
+
+func getMongoConnection(ots Options) (*mongo.Client, error) {
+	cred := options.Credential{
+		AuthSource: "admin",
+		Username:   opts.MongoUser,
+		Password:   opts.MongoPass,
+	}
+	clientOptions := options.Client().ApplyURI(ots.MongoUrl).SetAuth(cred)
+	return mongo.Connect(ctx, clientOptions)
 }
