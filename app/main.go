@@ -53,7 +53,7 @@ func main() {
 		log.Printf("[WARN] interrupt signal")
 		cancel()
 	}()
-	client, err := getMongoConnection(opts)
+	client, err := getMongoConnection(opts, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,12 +74,12 @@ func main() {
 	}
 }
 
-func getMongoConnection(ots Options) (*mongo.Client, error) {
+func getMongoConnection(opts Options, ctx context.Context) (*mongo.Client, error) {
 	cred := options.Credential{
 		AuthSource: "admin",
 		Username:   opts.MongoUser,
 		Password:   opts.MongoPass,
 	}
-	clientOptions := options.Client().ApplyURI(ots.MongoUrl).SetAuth(cred)
+	clientOptions := options.Client().ApplyURI(opts.MongoUrl).SetAuth(cred)
 	return mongo.Connect(ctx, clientOptions)
 }
