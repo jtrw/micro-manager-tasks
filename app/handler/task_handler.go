@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -71,7 +72,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	var subTask SubTask
 	_ = json.NewDecoder(r.Body).Decode(&subTask)
 
-	uuid := r.URL.Query().Get("uuid")
+	uuid := chi.URLParam(r, "uuid")
 	log.Println(uuid)
 	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
@@ -129,7 +130,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	uuid := r.FormValue("uuid")
+	uuid := chi.URLParam(r, "uuid")
 
 	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
@@ -152,7 +153,7 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) ShowTaskInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	uuid := r.FormValue("uuid")
+	uuid := chi.URLParam(r, "uuid")
 
 	collection := h.Database.Collection(COLLECTION_TASKS)
 	filter := bson.M{"uuid": uuid}
