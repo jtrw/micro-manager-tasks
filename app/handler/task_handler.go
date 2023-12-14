@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"net/http"
@@ -43,7 +43,8 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&task)
 
 	task.Status = "created"
-	task.UUID = primitive.NewObjectID().Hex()
+	//task.UUID = primitive.NewObjectID().Hex()
+	task.UUID = uuid.New().String()
 	task.Subtasks = []SubTask{}
 
 	if task.Count == 0 {
@@ -72,10 +73,9 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	var subTask SubTask
 	_ = json.NewDecoder(r.Body).Decode(&subTask)
 
-	uuid := chi.URLParam(r, "uuid")
-	log.Println(uuid)
+	uuidUrl := chi.URLParam(r, "uuid")
 	collection := h.Database.Collection(COLLECTION_TASKS)
-	filter := bson.M{"uuid": uuid}
+	filter := bson.M{"uuid": uuidUrl}
 	update := bson.M{
 		"$push": bson.M{"subtasks": subTask},
 	}
