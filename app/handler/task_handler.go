@@ -130,10 +130,10 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	uuid := chi.URLParam(r, "uuid")
+	uuidStr := chi.URLParam(r, "uuid")
 
 	collection := h.Database.Collection(COLLECTION_TASKS)
-	filter := bson.M{"uuid": uuid}
+	filter := bson.M{"uuid": uuidStr}
 
 	var task Task
 	err := collection.FindOne(context.Background(), filter).Decode(&task)
@@ -153,10 +153,10 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) ShowTaskInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	uuid := chi.URLParam(r, "uuid")
+	uuidStr := chi.URLParam(r, "uuid")
 
 	collection := h.Database.Collection(COLLECTION_TASKS)
-	filter := bson.M{"uuid": uuid}
+	filter := bson.M{"uuid": uuidStr}
 
 	var task Task
 	err := collection.FindOne(context.Background(), filter).Decode(&task)
@@ -167,5 +167,4 @@ func (h Handler) ShowTaskInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(task)
-
 }
