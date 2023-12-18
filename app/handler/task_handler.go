@@ -12,6 +12,8 @@ import (
 	"net/http"
 )
 
+type JSON map[string]interface{}
+
 type Handler struct {
 	Database *mongo.Database
 }
@@ -64,8 +66,7 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]string{"uuid": task.UUID}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(JSON{"uuid": task.UUID})
 }
 
 func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +85,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to add subtask")
+		json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to add subtask"})
 		return
 	}
 	log.Println(res)
@@ -94,7 +95,8 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to update task status!")
+
+		json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to update task status!"})
 		return
 	}
 
@@ -106,7 +108,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 		_, err := collection.UpdateOne(context.Background(), filter, update)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode("Failed to update task status")
+			json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to update task status"})
 			return
 		}
 		if task.Callback != "" {
@@ -118,14 +120,14 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
-				json.NewEncoder(w).Encode("Failed to send callback")
+
+				json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to send callback"})
 				return
 			}
 		}
 	}
 
-	response := map[string]string{"uuid": subTask.UUID}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(JSON{"uuid": subTask.UUID})
 }
 
 func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
@@ -139,11 +141,11 @@ func (h Handler) CheckStatus(w http.ResponseWriter, r *http.Request) {
 	err := collection.FindOne(context.Background(), filter).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to fetch task")
+		json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to fetch task"})
 		return
 	}
 
-	response := map[string]interface{}{
+	response := JSON{
 		"uuid":   task.UUID,
 		"status": task.Status,
 	}
@@ -162,7 +164,8 @@ func (h Handler) ShowTaskInfo(w http.ResponseWriter, r *http.Request) {
 	err := collection.FindOne(context.Background(), filter).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Failed to fetch task")
+
+		json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to fetch task"})
 		return
 	}
 
