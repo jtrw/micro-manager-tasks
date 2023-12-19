@@ -18,6 +18,12 @@ type Handler struct {
 	Database *mongo.Database
 }
 
+const (
+	STATUS_NEW   = "new"
+	STATUS_DONE  = "done"
+	STATUS_ERROR = "error"
+)
+
 func NewHandler(database *mongo.Database) Handler {
 	return Handler{Database: database}
 }
@@ -44,7 +50,7 @@ func (h Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var task Task
 	_ = json.NewDecoder(r.Body).Decode(&task)
 
-	task.Status = "created"
+	task.Status = STATUS_NEW
 	//task.UUID = primitive.NewObjectID().Hex()
 	task.UUID = uuid.New().String()
 	task.Subtasks = []SubTask{}
@@ -88,7 +94,6 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(JSON{"status": "error", "message": "Failed to add subtask"})
 		return
 	}
-	log.Println(res)
 
 	var task Task
 	err = collection.FindOne(context.Background(), filter).Decode(&task)
@@ -102,7 +107,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 
 	if len(task.Subtasks) == task.Count {
 		update := bson.M{
-			"$set": bson.M{"status": "done"},
+			"$set": bson.M{"status": STATUS_DONE},
 		}
 
 		_, err := collection.UpdateOne(context.Background(), filter, update)
