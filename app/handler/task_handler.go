@@ -87,7 +87,7 @@ func (h Handler) AddSubTask(w http.ResponseWriter, r *http.Request) {
 		"$push": bson.M{"subtasks": subTask},
 	}
 
-	res, err := collection.UpdateOne(context.Background(), filter, update)
+	_, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
