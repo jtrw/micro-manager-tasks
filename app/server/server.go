@@ -73,6 +73,7 @@ func (s Server) routes() chi.Router {
 	handler := taskHandler.NewHandler(database)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
+			r.Use(rest.Authentication("Api-Token", s.Secret))
 			r.Post("/tasks", handler.CreateTask)
 			r.Get("/tasks/{uuid}", handler.ShowTaskInfo)
 			r.Post("/tasks/{uuid}/subtask", handler.AddSubTask)
